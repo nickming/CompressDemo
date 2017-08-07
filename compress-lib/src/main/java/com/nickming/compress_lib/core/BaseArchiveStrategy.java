@@ -2,7 +2,8 @@ package com.nickming.compress_lib.core;
 
 import android.os.Handler;
 import android.os.Looper;
-import android.text.TextUtils;
+
+import com.nickming.compress_lib.util.FileUtil;
 
 import java.io.File;
 
@@ -23,9 +24,11 @@ public abstract class BaseArchiveStrategy {
         mHandler = new Handler(Looper.getMainLooper());
     }
 
-    abstract void compressFile(File[] files, String outPath);
+    public abstract void compressFile(File[] files, String outPath);
 
-    abstract void unCompressFile(String filePath, String outPath, IArchiveListener listener);
+    public abstract void unCompressFile(String filePath, String outPath, IArchiveListener listener);
+
+    public abstract String getFileExtension();
 
     protected void notifyStart(final IArchiveListener listener) {
         if (null != listener) {
@@ -73,18 +76,13 @@ public abstract class BaseArchiveStrategy {
     }
 
     protected boolean checkFileState(String filePath, String outPath, IArchiveListener listener) {
-        if (TextUtils.isEmpty(filePath)||TextUtils.isEmpty(outPath)){
+        File file = new File(filePath);
+        if (file == null && !file.exists()) {
             notifyError(listener, "路径为空!");
             return false;
         }
-        if (!new File(filePath).exists()) {
-            notifyError(listener, "文件不存在!");
-            return false;
-        }
-        if (!new File(outPath).exists()) {
-            new File(outPath).mkdirs();
-        }
-        return true;
+        notifyStart(listener);
+        return FileUtil.createDirOrExists(outPath);
     }
 
 }

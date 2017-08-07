@@ -1,6 +1,7 @@
 package com.nickming.compress_lib.core;
 
-import com.hzy.lib7z.Un7Zip;
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.model.FileHeader;
 
 import java.io.File;
 
@@ -16,27 +17,44 @@ import java.io.File;
 public class ZipStrategy extends BaseArchiveStrategy{
 
     @Override
-    void compressFile(File[] files, String outPath) {
+    public void compressFile(File[] files, String outPath) {
 
     }
 
     @Override
-    void unCompressFile(String filePath, String outPath, IArchiveListener listener) {
+    public void unCompressFile(String filePath, String outPath, IArchiveListener listener) {
         try {
-            notifyStart(listener);
             if (!checkFileState(filePath, outPath, listener)) {
                 return;
             }
-            notifyProgress(listener, 0);
-            boolean result = Un7Zip.extract7z(filePath, outPath);
-            if (result) {
-                notifyProgress(listener, 100);
-                notifyCompleted(listener, outPath);
-            } else {
-                notifyError(listener, "解压7Z失败!");
+
+            ZipFile zipFile=new ZipFile(filePath);
+            zipFile.setFileNameCharset("GBK");
+            if (!zipFile.isValidZipFile()){
+                notifyError(listener,"该文件不是合法的zip文件");
+                return;
             }
+            if (zipFile.isEncrypted()){
+                zipFile.setPassword("");
+            }
+
+            int total=zipFile.getFileHeaders().size();
+            for (int i = 0; i < total; i++) {
+                FileHeader fileHeader= (FileHeader) zipFile.getFileHeaders().get(i);
+                zipFile.extractFile(fileHeader,outPath);
+                int progress=(i+1)*100/total;
+                notifyProgress(listener,progress);
+            }
+
+            notifyCompleted(listener,outPath);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public String getFileExtension() {
+        return "zip";
     }
 }

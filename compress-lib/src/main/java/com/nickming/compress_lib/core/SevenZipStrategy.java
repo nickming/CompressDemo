@@ -13,18 +13,17 @@ import java.io.File;
  * Copyright (c) 2017 nickming All right reserved.
  */
 
-public class SevenZipStarategy extends BaseArchiveStrategy {
+public class SevenZipStrategy extends BaseArchiveStrategy {
 
 
     @Override
-    void compressFile(File[] files, String outPath) {
+    public void compressFile(File[] files, String outPath) {
 
     }
 
     @Override
-    void unCompressFile(String filePath, String outPath, IArchiveListener listener) {
+    public void unCompressFile(String filePath, String outPath, IArchiveListener listener) {
         try {
-            notifyStart(listener);
             if (!checkFileState(filePath, outPath, listener)) {
                 return;
             }
@@ -39,5 +38,10 @@ public class SevenZipStarategy extends BaseArchiveStrategy {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public String getFileExtension() {
+        return "7z";
     }
 }
